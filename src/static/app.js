@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <h5>Current Participants:</h5>
+          <div class="participants-list">
+            ${details.participants.map(email => `<div class="participant-item"><span class="participant-email">${email}</span><span class="delete-icon" onclick="unregister('${name.replace(/'/g, "\\'")}', '${email.replace(/'/g, "\\'")}')">×</span></div>`).join('')}
+          </div>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -38,6 +42,29 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
+    }
+  }
+
+  // Function to unregister a participant
+  async function unregister(activityName, email) {
+    try {
+      const response = await fetch(
+        `/activities/${encodeURIComponent(activityName)}/signup?email=${encodeURIComponent(email)}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        // Refresh the activities list
+        fetchActivities();
+      } else {
+        const result = await response.json();
+        alert(result.detail || "Failed to unregister");
+      }
+    } catch (error) {
+      console.error("Error unregistering:", error);
+      alert("Failed to unregister. Please try again.");
     }
   }
 
